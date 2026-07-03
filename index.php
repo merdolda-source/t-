@@ -278,9 +278,11 @@ if ($r === 'seg') {
   /* Kategori çipleri */
   .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 12px 4px;scrollbar-width:none}
   .chips::-webkit-scrollbar{display:none}
-  .chip{flex:0 0 auto;background:var(--card);border:1px solid var(--line);color:var(--mut);
-    padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+  .chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    color:var(--mut);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
   .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chip-logo{width:18px;height:18px;border-radius:5px;object-fit:cover;background:#fff2}
+  .chip-cnt{font-size:10.5px;opacity:.7;font-weight:700}
 
   /* Izgara */
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px}
@@ -423,24 +425,40 @@ let curSeries = null;   // {series, episodes}
 let cur = 0;            // aktif bölüm index
 
 /* ---------- Kategoriler ---------- */
+const DFX_ORIGIN = 'https://dramaflix.cc';
+function platLogo(u){ if(!u) return ''; return /^https?:\/\//.test(u) ? u : DFX_ORIGIN + u; }
+
 async function loadPlatforms(){
   const chips = document.getElementById('chips');
-  const base = [
-    {id:'popular', label:'🔥 Popüler'},
-    {id:'new',     label:'🆕 Yeni'},
-    {id:'all',     label:'Tümü'},
-  ];
   let plats = [];
   try{
     const r = await fetch(api('action=platforms&lang='+state.lang));
     const j = await r.json();
-    plats = (j.platforms||[]).map(p => ({id:'platform:'+p.name, label:p.name + (p.count?' ('+p.count+')':'')}));
+    plats = (j.platforms||[])
+      .filter(p => (p.count||0) > 0)                    // boş platformları ele
+      .sort((a,b)=> (b.count||0)-(a.count||0))          // çok içerikli önde
+      .map(p => ({id:'platform:'+p.name, label:p.name, count:p.count, logo:platLogo(p.logo_url)}));
   }catch(e){}
+
+  // Sıra: Popüler, Yeni — sonra TÜM platformlar (NetShort, ReelShort…) önde — en sonda Tümü
+  const items = [
+    {id:'popular', label:'🔥 Popüler'},
+    {id:'new',     label:'🆕 Yeni'},
+    ...plats,
+    {id:'all',     label:'Tümü'},
+  ];
+
   chips.innerHTML='';
-  base.concat(plats).forEach(c=>{
+  items.forEach(c=>{
     const el=document.createElement('div');
     el.className='chip'+(c.id===state.cat?' active':'');
-    el.textContent=c.label;
+    if(c.logo){
+      el.innerHTML = '<img class="chip-logo" src="'+c.logo+'" alt="" onerror="this.remove()">'
+                   + '<span>'+c.label+'</span>'
+                   + (c.count?'<span class="chip-cnt">'+c.count+'</span>':'');
+    } else {
+      el.textContent = c.label;
+    }
     el.onclick=()=>{ state.cat=c.id; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); el.classList.add('active'); reload(); };
     chips.appendChild(el);
   });
