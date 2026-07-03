@@ -150,7 +150,7 @@ class DramaFlixScraper
             }
             $offset += $pageSize;
             if ($offset < $total && count($out) < $max) {
-                usleep((int)($delay * 1_000_000));
+                usleep((int)($delay * 1000000));
             }
         }
         return ['fetched' => count($out), 'total' => $total, 'series' => $out];
