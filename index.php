@@ -251,6 +251,9 @@ if ($r === 'seg') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- Kapak CDN'i (cdn.dramaflix.cc) yabancı Referer'da 403 veriyor (hotlink koruması).
+     Referer'ı hiç göndermeyerek 200 alırız — resimler böylece yüklenir, proxy'ye gerek yok. -->
+<meta name="referrer" content="no-referrer">
 <title>DramaFlix — Kısa Dramalar</title>
 <style>
   :root{
@@ -359,9 +362,6 @@ if ($r === 'seg') {
     <select id="lang">
       <option value="TR">TR</option>
       <option value="EN">EN</option>
-      <option value="ES">ES</option>
-      <option value="PT">PT</option>
-      <option value="DE">DE</option>
     </select>
   </div>
 </header>
@@ -374,7 +374,7 @@ if ($r === 'seg') {
 <!-- Detay -->
 <div class="sheet" id="sheet">
   <div class="hero">
-    <img id="d_hero" alt="">
+    <img id="d_hero" alt="" referrerpolicy="no-referrer">
     <div class="grad"></div>
     <button class="close" onclick="closeSheet()">×</button>
   </div>
@@ -513,7 +513,7 @@ function renderCards(items){
     const badge = s.is_new ? '<div class="badge new">Yeni</div>' : (s.is_popular?'<div class="badge">Popüler</div>':'');
     a.innerHTML =
       badge +
-      '<img class="poster" loading="lazy" src="'+ (s.cover_image||'') +'" alt="" onerror="this.style.opacity=.15">'+
+      '<img class="poster" loading="lazy" referrerpolicy="no-referrer" src="'+ (s.cover_image||'') +'" alt="" onerror="this.style.opacity=.15">'+
       '<div class="meta"><div class="t">'+ esc(s.title) +'</div>'+
       '<div class="s"><span>'+ esc(s.platform||'') +'</span><span>'+ (s.total_episodes||0) +' bl</span></div></div>';
     a.onclick=()=>openDetail(s.slug);

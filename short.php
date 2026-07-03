@@ -220,6 +220,7 @@ if ($r === 'detail') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <title>ShortDrama — Kısa Dramalar</title>
 <style>
   :root{--bg:#0b0b0f;--bg2:#14141c;--card:#181822;--line:#26263340;--txt:#f2f2f5;--mut:#9a9aab;--accent:#E50914}
@@ -387,7 +388,7 @@ function renderCards(items){
     const a=document.createElement('div'); a.className='card';
     a.innerHTML=
       (s.platform?'<div class="badge">'+esc(s.platform)+'</div>':'')+
-      '<img class="poster" loading="lazy" src="'+esc(s.cover)+'" alt="" onerror="this.style.opacity=.15">'+
+      '<img class="poster" loading="lazy" referrerpolicy="no-referrer" src="'+esc(s.cover)+'" alt="" onerror="this.style.opacity=.15">'+
       '<div class="meta"><div class="t">'+esc(s.title)+'</div><div class="s">'+esc((s.language||'').toUpperCase())+'</div></div>';
     a.onclick=()=>openDetail(s.slug);
     g.appendChild(a);
