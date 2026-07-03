@@ -227,3 +227,72 @@ if (PHP_SAPI === 'cli' && isset($argv) && realpath($argv[0]) === realpath(__FILE
         exit(2);
     }
 }
+
+/* ----------------------------- WEB ----------------------------- */
+/*
+ * Tarayıcıdan / hPanel'den erişim (CLI değilken). Örnekler:
+ *   dramaflix_scraper.php?action=list&limit=10&lang=TR
+ *   dramaflix_scraper.php?action=detail&slug=dunyaya-donus
+ *   dramaflix_scraper.php?action=episodes&slug=dunyaya-donus
+ *   dramaflix_scraper.php?action=all&lang=TR&max=120
+ *   dramaflix_scraper.php?action=home&lang=TR
+ *   dramaflix_scraper.php?action=platforms
+ * Çıktı: JSON (Content-Type: application/json).
+ */
+elseif (PHP_SAPI !== 'cli') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $action = $_GET['action'] ?? 'list';
+    $lang   = isset($_GET['lang']) && $_GET['lang'] !== '' ? $_GET['lang'] : null;
+    $slug   = $_GET['slug'] ?? '';
+
+    $scraper = new DramaFlixScraper();
+
+    try {
+        switch ($action) {
+            case 'list':
+                $res = $scraper->listSeries(
+                    (int)($_GET['limit'] ?? 60),
+                    (int)($_GET['offset'] ?? 0),
+                    $lang
+                );
+                break;
+
+            case 'detail':
+                if ($slug === '') {
+                    throw new InvalidArgumentException('slug parametresi gerekli (?action=detail&slug=...)');
+                }
+                $res = $scraper->seriesDetail($slug);
+                break;
+
+            case 'episodes':
+                if ($slug === '') {
+                    throw new InvalidArgumentException('slug parametresi gerekli (?action=episodes&slug=...)');
+                }
+                $res = $scraper->episodes($slug);
+                break;
+
+            case 'all':
+                $res = $scraper->allSeries($lang, (int)($_GET['max'] ?? 500));
+                break;
+
+            case 'home':
+                $res = $scraper->home($lang);
+                break;
+
+            case 'platforms':
+                $res = $scraper->platforms($lang);
+                break;
+
+            default:
+                http_response_code(400);
+                $res = ['error' => "Bilinmeyen action: $action",
+                        'actions' => ['list', 'detail', 'episodes', 'all', 'home', 'platforms']];
+        }
+
+        echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+}
